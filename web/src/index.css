@@ -232,7 +232,7 @@ html[data-glass='liquid'] .glass {
 /* The phone dock: the one surface that floats over scrolling content, so it is always
    a little denser than a panel to keep labels legible over anything. */
 .dock {
-  background-color: color-mix(in oklch, var(--glass) 65%, var(--glass-strong));
+  background-color: color-mix(in oklch, var(--glass) 30%, var(--glass-strong));
 }
 html[data-glass='liquid'] .dock {
   /* The liquid .glass rule's background shorthand outranks .dock; restore the denser fill. */
@@ -266,11 +266,12 @@ html[data-glass='liquid'] .dock-bead {
 .dock-scroll {
   scrollbar-width: none;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.25rem; /* the bar's inner padding, so rest is scrollLeft 0 */
   -webkit-overflow-scrolling: touch;
 }
 .dock-scroll::-webkit-scrollbar { display: none; }
-.dock-scroll > * { scroll-snap-align: center; }
+.dock-scroll > div > a { scroll-snap-align: start; }
 
 /* Calm mode: a still backdrop and no soft-focus animation on each pane. */
 html[data-calm] .mesh span { animation: none; }

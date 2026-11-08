@@ -1,5 +1,5 @@
 import { useIsFetching, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, LogOut, RotateCw } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, LogOut, RotateCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router'
 import { Button } from '@/components/ui/button'
@@ -73,11 +73,13 @@ function Rail() {
   )
 }
 
-/** One item's width in the phone dock: wide enough for the labels, narrow enough that the
-    next item peeks in (4.7 visible on a 390px phone) so the bar reads as swipeable. */
-const DOCK_ITEM = 'w-19 shrink-0'
+/** Five whole items fill the bar at rest (20% of its inner width); the rest are a swipe away.
+    Container units keep that true at any phone width, up to the bar's max width. */
+const DOCK_ITEM = 'w-[20cqw] shrink-0'
+const DOCK_VISIBLE = 5
 
-/** Phone dock: every section in one bar that swipes sideways. The lens slides to the open one. */
+/** Phone dock: every section in one bar that swipes sideways, snapping so no label is ever
+    cut in half. The lens slides to the open section, and the bar pages to keep it on screen. */
 function Dock() {
   const { pathname } = useLocation()
   const active = NAV.findIndex((n) => isActive(n.to, pathname))
@@ -88,27 +90,25 @@ function Dock() {
     const el = scroller.current
     if (el) setEdges({ start: el.scrollLeft < 4, end: el.scrollLeft + el.clientWidth > el.scrollWidth - 4 })
   }
-  // Keep the open section on screen, and centred when the bar has to scroll for it.
   useEffect(() => {
     const el = scroller.current
-    const item = el?.querySelectorAll<HTMLElement>('[data-dock-item]')[active]
-    if (!el || !item) return measure()
-    const left = item.offsetLeft - (el.clientWidth - item.offsetWidth) / 2
-    el.scrollTo({ left, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    if (!el) return
+    const item = el.querySelector('a')?.getBoundingClientRect().width ?? el.clientWidth / DOCK_VISIBLE
+    const first = Math.round(el.scrollLeft / item)
+    // Only move when the open section is off screen; centre it when it is.
+    if (active >= 0 && (active < first || active >= first + DOCK_VISIBLE)) {
+      const target = Math.min(Math.max(active - 2, 0), NAV.length - DOCK_VISIBLE)
+      el.scrollTo({ left: target * item, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    }
+    measure()
+    const raf = requestAnimationFrame(measure) // after the snap point has settled
+    return () => cancelAnimationFrame(raf)
   }, [active])
-  useEffect(measure, [])
 
-  // Fade the edge that has more behind it, so the cut-off item reads as "keep swiping".
-  const mask = `linear-gradient(to right, ${edges.start ? '#000' : 'transparent'}, #000 18px, #000 calc(100% - 18px), ${edges.end ? '#000' : 'transparent'})`
   return (
     <nav aria-label="Main" className="no-print fixed inset-x-3 bottom-[max(0.5rem,calc(env(safe-area-inset-bottom)-0.5rem))] z-40 rail:hidden">
-      <div className="glass dock mx-auto max-w-lg rounded-full">
-        <div
-          ref={scroller}
-          onScroll={measure}
-          className="dock-scroll overflow-x-auto rounded-full p-1"
-          style={{ WebkitMaskImage: mask, maskImage: mask }}
-        >
+      <div className="glass dock relative mx-auto max-w-lg rounded-full">
+        <div ref={scroller} onScroll={measure} className="dock-scroll overflow-x-auto rounded-full p-1 [container-type:inline-size]">
           <div className="relative flex w-max">
             {active >= 0 && (
               <span
@@ -121,7 +121,6 @@ function Dock() {
               <NavLink
                 key={to}
                 to={to}
-                data-dock-item
                 className={cn(
                   DOCK_ITEM,
                   'relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition duration-200 active:scale-[0.94]',
@@ -134,6 +133,9 @@ function Dock() {
             ))}
           </div>
         </div>
+        {/* Hints that there is more: a small chevron on whichever side still has items. */}
+        {!edges.start && <ChevronLeft aria-hidden className="pointer-events-none absolute top-1/2 left-0.5 size-3.5 -translate-y-1/2 text-faint" />}
+        {!edges.end && <ChevronRight aria-hidden className="pointer-events-none absolute top-1/2 right-0.5 size-3.5 -translate-y-1/2 text-faint" />}
       </div>
     </nav>
   )
