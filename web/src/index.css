@@ -236,7 +236,7 @@ html[data-glass='liquid'] .glass {
 }
 html[data-glass='liquid'] .dock {
   /* The liquid .glass rule's background shorthand outranks .dock; restore the denser fill. */
-  background-color: color-mix(in oklch, var(--glass) 65%, var(--glass-strong));
+  background-color: color-mix(in oklch, var(--glass) 30%, var(--glass-strong));
   background-image: linear-gradient(180deg, var(--sheen) 0%, transparent 55%), linear-gradient(152deg, var(--sheen) 0%, transparent 34%);
 }
 /* The lens that marks the current tab: clear glass, brighter than the bar, lifted. */
