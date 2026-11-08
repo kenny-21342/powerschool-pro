@@ -232,11 +232,11 @@ html[data-glass='liquid'] .glass {
 /* The phone dock: the one surface that floats over scrolling content, so it is always
    a little denser than a panel to keep labels legible over anything. */
 .dock {
-  background-color: color-mix(in oklch, var(--glass) 30%, var(--glass-strong));
+  background-color: color-mix(in oklch, var(--glass) 12%, var(--glass-strong));
 }
 html[data-glass='liquid'] .dock {
   /* The liquid .glass rule's background shorthand outranks .dock; restore the denser fill. */
-  background-color: color-mix(in oklch, var(--glass) 30%, var(--glass-strong));
+  background-color: color-mix(in oklch, var(--glass) 12%, var(--glass-strong));
   background-image: linear-gradient(180deg, var(--sheen) 0%, transparent 55%), linear-gradient(152deg, var(--sheen) 0%, transparent 34%);
 }
 /* The lens that marks the current tab: clear glass, brighter than the bar, lifted. */
@@ -263,6 +263,14 @@ html[data-glass='liquid'] .dock-bead {
 }
 
 /* Hide the bar's scrollbar, keep it swipeable, fade the edges that still have more. */
+.dock {
+  /* Own transition layer: the bar stays put (and stays opaque enough to read, since snapshots
+     drop backdrop blur) instead of being swept into the page's cross-fade. */
+  view-transition-name: dock;
+}
+::view-transition-group(dock) { animation: none; z-index: 2; }
+::view-transition-old(dock) { display: none; }
+::view-transition-new(dock) { animation: none; }
 .dock-scroll {
   scrollbar-width: none;
   overscroll-behavior-x: contain;
@@ -355,10 +363,10 @@ html[data-vt]::view-transition-old(root) { animation: none; opacity: 0; }
 
 /* Week paging: the timetable slides the way you moved. */
 ::view-transition-group(week) { animation: none; }
-html[data-vt="next"]::view-transition-old(week) { animation: week-out 170ms cubic-bezier(0.4, 0, 1, 1) both; --dir: -1; }
-html[data-vt="next"]::view-transition-new(week) { animation: week-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both; --dir: 1; }
-html[data-vt="prev"]::view-transition-old(week) { animation: week-out 170ms cubic-bezier(0.4, 0, 1, 1) both; --dir: 1; }
-html[data-vt="prev"]::view-transition-new(week) { animation: week-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both; --dir: -1; }
+html[data-vt="next"]::view-transition-old(week) { animation: week-out 110ms cubic-bezier(0.4, 0, 1, 1) both; --dir: -1; }
+html[data-vt="next"]::view-transition-new(week) { animation: week-in 300ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both; --dir: 1; }
+html[data-vt="prev"]::view-transition-old(week) { animation: week-out 110ms cubic-bezier(0.4, 0, 1, 1) both; --dir: 1; }
+html[data-vt="prev"]::view-transition-new(week) { animation: week-in 300ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both; --dir: -1; }
 @keyframes week-out { to { opacity: 0; transform: translateX(calc(var(--dir) * 24px)); filter: blur(4px); } }
 @keyframes week-in { from { opacity: 0; transform: translateX(calc(var(--dir) * 32px)); filter: blur(4px); } }
 
